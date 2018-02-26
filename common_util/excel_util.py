@@ -17,7 +17,7 @@ class ExcelUtil(Workbook):
                 _row.append(str(row[i]))
         return _row
 
-    # 写单个sheet
+    # 指定sheet_name写入数据，如果sheet_name不存在，则先创建，再写入
     def __write_sheet(self, _sheet_name, head_data, result_data):
         if _sheet_name not in self.sheetnames:
             self.create_sheet(_sheet_name)
@@ -33,12 +33,13 @@ class ExcelUtil(Workbook):
         # 如果1页的话，直接写入到当前sheet
         if page_count == 1:
             self.__write_sheet(_sheet_name, head_data, result_data)
+        # 如果1页写不下，则分多页写入
         else:
             for i in range(page_count):
                 tem_sheet_name = _sheet_name + str(i+1)
                 self.__write_sheet(tem_sheet_name, head_data, result_data)
 
-    # 设置格式
+    # 设置格式（设置字体为微软雅黑，设置字体首行加粗）
     def set_style(self, _sheet_name):
         font = Font(name=u'微软雅黑', bold=False)
         font_bold = Font(name=u'微软雅黑', bold=True)
@@ -54,7 +55,7 @@ class ExcelUtil(Workbook):
                 else:
                     ws.cell(column=j, row=i).font = font
 
-    # 设置列宽
+    # 设置列宽（设置列宽符合当列最大长度）
     def set_width(self, _sheet_name):
         ws = self[_sheet_name]
         row = ws.max_row
@@ -71,7 +72,7 @@ class ExcelUtil(Workbook):
             col = str(get_column_letter(i + 1))
             ws.column_dimensions[col].width = width_list[i] + 5
 
-    # 调整excel格式
+    # 调整excel格式（包括设置字体和列宽）
     def set_fit(self):
         for sh_name in self.sheetnames:
             ws = self[sh_name]
@@ -88,9 +89,15 @@ class ExcelUtil(Workbook):
 
 
 if __name__ == '__main__':
+    # 创建excel对象
     wb = ExcelUtil()
+    # 创建表头数据列表
     _head_data = list(range(10))
+    # 创建内容数据列表
     _result_data = [list(range(11, 20)), list(range(21, 30))]
+    # 写入excel
     wb.write_excel('数字列表', _head_data, _result_data)
+    # 调整excel格式，包括字体和列宽
     wb.set_fit()
+    # 保存excel
     wb.save(filename='E:/测试数据.xlsx')

@@ -1,4 +1,5 @@
 # psql数据库配置
+
 psql_dic = {
     'formal_db': {
         'host': '',

@@ -1,47 +1,46 @@
-import datetime
+from __future__ import print_function
+
+import sys
+from operator import add
+import time
+
+# SparkSession：是一个对Spark的编程入口，取代了原本的SQLContext与HiveContext，方便调用Dataset和DataFrame API
+# SparkSession可用于创建DataFrame，将DataFrame注册为表，在表上执行SQL，缓存表和读取parquet文件。
+from pyspark.sql import SparkSession
+from pyspark import SparkContext,SparkConf
 
 
-def zabbix_quality(request):
-    zapi=zabbix_fiveprovince()
-    alerts=zapi.trigger.get(
-        output=['triggerid', 'description', 'comments', 'lastchange', 'priority','status'],
-        expandDescription='true',
-        expandComment='true',
-        selectHosts=['name'],
-        sortfield="priority",
-        only_true="true",
-        active=1,
-        monitored=1,
-    )
-    print(alerts)
+if __name__ == "__main__":
 
-    data_dic = {'code': '0', 'data': {}}
+    # Python 常用的简单参数传入
+    if len(sys.argv) != 2:
+        print("Usage: wordcount <file>", file=sys.stderr)
+        exit(-1)
 
-    for row in alerts:
-        if "带宽进出相差大于200M" in row['description'] or "带宽进出相差大于500M" in row['description']:
-            city = row['hosts']['name'].split('_')[0]
-            name = row['hosts']['name']
-            comments = row.get('comments', '字段不存在')
-            priority = 'levelATwo' if '带宽进出相差大于200M' in row['description'] else 'levelOne'
-            lastchange = datetime.datetime.fromtimestamp(int(row['lastchange']))
-            duration = datetime.datetime.now() - lastchange
-            lastchange = lastchange + datetime.timedelta(hours=8)
-            description = row['description']
-            if city not in data_dic['data']:
-                data_dic['data'][city] = {"priority": priority,
-                                          'datas': [
-                                              {'name': name,
-                                               'comments': comments,
-                                               'priority': priority,
-                                               'lastchange': lastchange,
-                                               'duration': duration,
-                                               'description': description}]}
-            else:
-                data_dic['data'][city]['priority'] = 'levelOne' if priority != data_dic['data'][city]['priority'] else priority
-                data_dic['data'][city]['datas'].append({'name': name,
-                                               'comments': comments,
-                                               'priority': priority,
-                                               'lastchange': lastchange,
-                                               'duration': duration,
-                                               'description': description})
-    return data_dic
+    sc = SparkContext('local[3]')
+    sc.setLogLevel('INFO')
+
+    # appName 为 Spark 应用设定一个应用名，改名会显示在 Spark Web UI 上
+    # 假如SparkSession 已经存在就取得已存在的SparkSession，否则创建一个新的。
+    spark = SparkSession \
+        .builder \
+        .appName("PythonWordCount") \
+        .getOrCreate()
+
+    # 读取传入的文件内容，并写入一个新的RDD实例lines中，此条语句所做工作有些多，不适合初学者，可以截成两条语句以便理解。
+    # map是一种转换函数，将原来RDD的每个数据项通过map中的用户自定义函数f映射转变为一个新的元素。原始RDD中的数据项与新RDD中的数据项是一一对应的关系。
+    lines = spark.read.text(sys.argv[1]).rdd.map(lambda r: r[0])
+
+    # flatMap与map类似，但每个元素输入项都可以被映射到0个或多个的输出项，最终将结果”扁平化“后输出
+    counts = lines.flatMap(lambda x: x.split(' ')) \
+        .map(lambda x: (x, 1)) \
+        .reduceByKey(add)
+
+    # collect() 在驱动程序中将数据集的所有元素作为数组返回。 这在返回足够小的数据子集的过滤器或其他操作之后通常是有用的。由于collect 是将整个RDD汇聚到一台机子上，所以通常需要预估返回数据集的大小以免溢出。
+    output = counts.collect()
+
+    for (word, count) in output:
+        print("%s: %i" % (word, count))
+
+    time.sleep(10)
+    spark.stop()
