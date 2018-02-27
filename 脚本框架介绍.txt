@@ -9,10 +9,9 @@
 2、plot_util：画图工具类（未开发完成，进度5%）
 3、psql_util：postgresql连接池，用于postgresql的映射连接
 4、datetime_util：时间工具类，用户一些时间处理和时间转化
-5、email_util：发邮件工具类，早期邮件类，不完善，建议使用email_util_cls
-6、email_util_cls：邮件工具类，支持html正文及文件附件（暂不支持html正文中加入图片）
-7、excel_util：excel写入及格式优化工具
-8、log_util：日志写入工具
+5、email_util：邮件工具类，支持html正文及文件附件（暂不支持html正文中加入图片）
+6、excel_util：excel写入及格式优化工具
+7、log_util：日志写入工具
 
 
 二、file_log
@@ -23,5 +22,6 @@
 
 三、scripts（此文件夹用于存在一些脚本，可以再其中创建子文件夹，来区分项目）
 
-四、工具类的使用方法都在工具类文件中的：  if __name__ == '__main__'  下体现，或是在工具类文件夹下的example中体现，如果不明白可以直接去相应位置查看
+
+四、工具类的使用方法都在工具类文件中的：  if __name__ == '__main__'  下体现，或是在工具类文件夹下的example中体现，如果不明白可以直接去相应位置查看，或者加微信（lirui270239148）
 
