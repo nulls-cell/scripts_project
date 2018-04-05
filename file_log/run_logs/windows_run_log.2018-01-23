@@ -1,3 +1,0 @@
-2018-01-23 15:12:40,630 INFO log_util.py 67 2732 abc
-2018-01-23 15:12:40,630 ERROR log_util.py 68 2732 def
-2018-01-23 15:12:40,630 WARNING log_util.py 69 2732 ghi
