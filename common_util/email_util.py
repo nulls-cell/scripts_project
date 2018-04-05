@@ -10,7 +10,7 @@ class EmailUitl:
 
     # 初始化一些类变量
     sender = 'lirui_gydx@sina.com'
-    password = '15210945863lr'
+    password = ''
     receiver_list = None
     msg_root = MIMEMultipart('relate')
     msg_root['From'] = sender
